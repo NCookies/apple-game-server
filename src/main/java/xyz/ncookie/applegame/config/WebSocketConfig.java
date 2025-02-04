@@ -12,15 +12,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        registry.enableSimpleBroker("/topic"); // 메시지를 보내는 경로
-        registry.setApplicationDestinationPrefixes("/app"); // 클라이언트 요청 경로
+        registry.enableSimpleBroker("/topic"); // subscribe
+        registry.setApplicationDestinationPrefixes("/app"); // publish
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws") // WebSocket 연결 주소
-                .setAllowedOriginPatterns("*") // 모든 도메인 허용 (보안 강화 필요)
-                .withSockJS(); // SockJS 사용 가능
+        // 로비와 인게임은 별도의 소켓 연결을 가진다.
+        registry.addEndpoint("/ws/lobby").setAllowedOrigins("http://localhost:3000").withSockJS();
+        registry.addEndpoint("/ws/game").setAllowedOrigins("http://localhost:3000").withSockJS();
     }
 
 }
