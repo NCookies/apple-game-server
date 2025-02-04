@@ -28,12 +28,22 @@ public class GameRoom {
     private int maxPlayers; // 최대 인원
 
     public boolean joinRoom(String playerId) {
-        if (players.size() < maxPlayers) {
-            players.add(playerId);
-            return true;
+        // 최대 인원 꽉 차면 입장 불가
+        if (players.size() >= maxPlayers) {
+            return false;
         }
 
-        return false;
+        // 호스트 방 생성 시 중복 입장 방지용
+        if (players.contains(playerId)) {
+            return false;
+        }
+
+        players.add(playerId);
+        return true;
+    }
+
+    public void leaveRoom(String playerId) {
+        players.remove(playerId);
     }
 
 }

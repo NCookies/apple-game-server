@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.ncookie.applegame.dto.GameRoomDto;
 import xyz.ncookie.applegame.dto.request.GameRoomRequest;
 import xyz.ncookie.applegame.dto.request.JoinRoomRequest;
+import xyz.ncookie.applegame.dto.request.LeaveRoomRequest;
 import xyz.ncookie.applegame.entity.GameRoom;
 import xyz.ncookie.applegame.repository.GameRoomRepository;
 
@@ -65,6 +66,31 @@ public class LobbyService {
         }
 
         return null;    // TODO: 방이 존재하지 않을 때 예외처리 해줘야 함
+    }
+
+    // 방 퇴장
+    public GameRoomDto leaveRoom(LeaveRoomRequest leaveRoomRequest) {
+        Optional<GameRoom> optional = gameRoomRepository.findById(leaveRoomRequest.roomId());
+
+        if (optional.isPresent()) {
+            GameRoom room = optional.get();
+            room.leaveRoom(leaveRoomRequest.userId());
+
+            // 방에 더 이상 유저가 없으면 방 삭제
+            if (room.getPlayers().isEmpty()) {
+                deleteRoom(leaveRoomRequest.roomId());
+            } else {  // 방이 삭제되지 않을 때만 정보 갱신
+                gameRoomRepository.save(room);
+            }
+
+            return GameRoomDto.of(room.getId(),
+                    room.getRoomName(),
+                    room.getHostUserId(),
+                    room.getPlayers(),
+                    room.getMaxPlayers());
+        }
+
+        return null;
     }
 
     // 방 삭제

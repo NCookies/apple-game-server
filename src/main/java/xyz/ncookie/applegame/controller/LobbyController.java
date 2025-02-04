@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import xyz.ncookie.applegame.dto.GameRoomDto;
 import xyz.ncookie.applegame.dto.request.GameRoomRequest;
 import xyz.ncookie.applegame.dto.request.JoinRoomRequest;
+import xyz.ncookie.applegame.dto.request.LeaveRoomRequest;
 import xyz.ncookie.applegame.dto.response.GameRoomInfoResponse;
 import xyz.ncookie.applegame.service.LobbyService;
 
@@ -33,7 +34,7 @@ public class LobbyController {
         GameRoomDto dto = lobbyService.createRoom(gameRoomRequest);
         GameRoomInfoResponse response = GameRoomInfoResponse.from(dto);
 
-        messagingTemplate.convertAndSend("/topic/rooms", response);
+        messagingTemplate.convertAndSend("/topic/rooms/update", response);
         return response;
     }
 
@@ -47,7 +48,28 @@ public class LobbyController {
             return false;
         }
 
-        messagingTemplate.convertAndSend("/topic/rooms", GameRoomInfoResponse.from(dto));
+        messagingTemplate.convertAndSend("/topic/rooms/update", GameRoomInfoResponse.from(dto));
+        return true;
+    }
+    
+    // 방 퇴장
+    @PostMapping("/leave")
+    public boolean leaveGameRoom(@RequestBody LeaveRoomRequest leaveRoomRequest) {
+        GameRoomDto dto = lobbyService.leaveRoom(leaveRoomRequest);
+
+        // 퇴장하려는 방이 존재하지 않음
+        if (dto == null) {
+            return false;
+        }
+
+        // 방에 더 이상 유저가 없으면 삭제 처리
+        if (dto.players().isEmpty()) {
+            messagingTemplate.convertAndSend("/topic/rooms/delete", GameRoomInfoResponse.from(dto));
+        } else {
+            messagingTemplate.convertAndSend("/topic/rooms/update", GameRoomInfoResponse.from(dto));
+        }
+        
+        // 정상적으로 방 퇴장 완료
         return true;
     }
 
