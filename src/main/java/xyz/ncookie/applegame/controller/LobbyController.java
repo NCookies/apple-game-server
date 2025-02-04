@@ -1,9 +1,7 @@
 package xyz.ncookie.applegame.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import xyz.ncookie.applegame.dto.GameRoomDto;
 import xyz.ncookie.applegame.dto.request.GameRoomRequest;
@@ -19,6 +17,7 @@ import java.util.List;
 public class LobbyController {
 
     private final LobbyService lobbyService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     // 초기 접속 시 방 목록 조회
     @GetMapping
@@ -29,19 +28,27 @@ public class LobbyController {
     }
 
     // 방 생성
-    @MessageMapping("/rooms/create")
-    @SendTo("/topic/rooms")
-    public GameRoomInfoResponse createRoom(@Payload GameRoomRequest roomRequest) {
-        GameRoomDto dto = lobbyService.createRoom(roomRequest);
-        return GameRoomInfoResponse.from(dto);
+    @PostMapping("/create")
+    public GameRoomInfoResponse createGameRoom(@RequestBody GameRoomRequest gameRoomRequest) {
+        GameRoomDto dto = lobbyService.createRoom(gameRoomRequest);
+        GameRoomInfoResponse response = GameRoomInfoResponse.from(dto);
+
+        messagingTemplate.convertAndSend("/topic/rooms", response);
+        return response;
     }
 
     // 방 입장
-    @MessageMapping("/rooms/join")
-    @SendTo("/topic/rooms")
-    public GameRoomInfoResponse joinRoom(@Payload JoinRoomRequest joinRoomRequest) {
+    @PostMapping("/join")
+    public boolean joinGameRoom(@RequestBody JoinRoomRequest joinRoomRequest) {
         GameRoomDto dto = lobbyService.joinRoom(joinRoomRequest);
-        return GameRoomInfoResponse.from(dto);
+
+        // 방 입장 실패 시 false 반환
+        if (dto == null) {
+            return false;
+        }
+
+        messagingTemplate.convertAndSend("/topic/rooms", GameRoomInfoResponse.from(dto));
+        return true;
     }
 
 }
