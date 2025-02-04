@@ -35,7 +35,7 @@ public class GameRoom {
 
         // 호스트 방 생성 시 중복 입장 방지용
         if (players.contains(playerId)) {
-            return false;
+            return true;
         }
 
         players.add(playerId);
