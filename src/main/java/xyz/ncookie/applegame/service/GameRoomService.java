@@ -17,7 +17,7 @@ import java.util.Optional;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class LobbyService {
+public class GameRoomService {
 
     private final GameRoomRepository gameRoomRepository;
 

@@ -8,7 +8,7 @@ import xyz.ncookie.applegame.dto.request.GameRoomRequest;
 import xyz.ncookie.applegame.dto.request.JoinRoomRequest;
 import xyz.ncookie.applegame.dto.request.LeaveRoomRequest;
 import xyz.ncookie.applegame.dto.response.GameRoomInfoResponse;
-import xyz.ncookie.applegame.service.LobbyService;
+import xyz.ncookie.applegame.service.GameRoomService;
 
 import java.util.List;
 
@@ -17,13 +17,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LobbyController {
 
-    private final LobbyService lobbyService;
+    private final GameRoomService gameRoomService;
     private final SimpMessagingTemplate messagingTemplate;
 
     // 초기 접속 시 방 목록 조회
     @GetMapping
     public List<GameRoomInfoResponse> getRoomList() {
-        return lobbyService.getRoomList().stream()
+        return gameRoomService.getRoomList().stream()
                 .map(GameRoomInfoResponse::from)
                 .toList();
     }
@@ -31,7 +31,7 @@ public class LobbyController {
     // 방 생성
     @PostMapping("/create")
     public GameRoomInfoResponse createGameRoom(@RequestBody GameRoomRequest gameRoomRequest) {
-        GameRoomDto dto = lobbyService.createRoom(gameRoomRequest);
+        GameRoomDto dto = gameRoomService.createRoom(gameRoomRequest);
         GameRoomInfoResponse response = GameRoomInfoResponse.from(dto);
 
         messagingTemplate.convertAndSend("/topic/rooms/update", response);
@@ -41,7 +41,7 @@ public class LobbyController {
     // 방 입장
     @PostMapping("/join")
     public GameRoomInfoResponse joinGameRoom(@RequestBody JoinRoomRequest joinRoomRequest) {
-        GameRoomDto dto = lobbyService.joinRoom(joinRoomRequest);
+        GameRoomDto dto = gameRoomService.joinRoom(joinRoomRequest);
 
         // 방 입장 실패 시 false 반환
         if (dto == null) {
@@ -58,7 +58,7 @@ public class LobbyController {
     // 방 퇴장
     @PostMapping("/leave")
     public boolean leaveGameRoom(@RequestBody LeaveRoomRequest leaveRoomRequest) {
-        GameRoomDto dto = lobbyService.leaveRoom(leaveRoomRequest);
+        GameRoomDto dto = gameRoomService.leaveRoom(leaveRoomRequest);
 
         // 퇴장하려는 방이 존재하지 않음
         if (dto == null) {
