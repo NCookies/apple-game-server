@@ -40,16 +40,19 @@ public class LobbyController {
 
     // 방 입장
     @PostMapping("/join")
-    public boolean joinGameRoom(@RequestBody JoinRoomRequest joinRoomRequest) {
+    public GameRoomInfoResponse joinGameRoom(@RequestBody JoinRoomRequest joinRoomRequest) {
         GameRoomDto dto = lobbyService.joinRoom(joinRoomRequest);
 
         // 방 입장 실패 시 false 반환
         if (dto == null) {
-            return false;
+            return null;
         }
 
-        messagingTemplate.convertAndSend("/topic/rooms/update", GameRoomInfoResponse.from(dto));
-        return true;
+        GameRoomInfoResponse gameRoomInfoResponse = GameRoomInfoResponse.from(dto);
+        messagingTemplate.convertAndSend("/topic/rooms/update", gameRoomInfoResponse);    // 방 정보 갱신
+        messagingTemplate.convertAndSend("/topic/player/update", dto.players());         // 플레이어 업데이트
+
+        return gameRoomInfoResponse;
     }
     
     // 방 퇴장
