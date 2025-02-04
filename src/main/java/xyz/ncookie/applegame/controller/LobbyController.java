@@ -50,7 +50,6 @@ public class LobbyController {
 
         GameRoomInfoResponse gameRoomInfoResponse = GameRoomInfoResponse.from(dto);
         messagingTemplate.convertAndSend("/topic/rooms/update", gameRoomInfoResponse);    // 방 정보 갱신
-        messagingTemplate.convertAndSend("/topic/player/update", dto.players());         // 플레이어 업데이트
 
         return gameRoomInfoResponse;
     }

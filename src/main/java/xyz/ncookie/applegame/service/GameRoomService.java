@@ -98,4 +98,13 @@ public class GameRoomService {
         gameRoomRepository.deleteById(roomId);
     }
 
+    public List<String> getPlayerListInRoom(String roomId) {
+        Optional<GameRoom> optional = gameRoomRepository.findById(roomId);
+        if (optional.isPresent()) {
+            return optional.get().getPlayers();
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
 }
